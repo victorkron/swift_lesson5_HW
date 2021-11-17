@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Diff</key>
+	<array>
+		<dict>
+			<key>ModifiedContent</key>
+			<string>enum VehicleType: CustomStringConvertible {
+    case sportCar, truck
+    
+    var description: String {
+        switch self {
+        case .sportCar:
+            return "Легковой"
+        case .truck:
+            return "Грузовой"
+        default:
+            return "the type is not defined"
+        }
+    }
+}
+
+enum WindowsStatus: CustomStringConvertible {
+    case opened, closed
+    
+    var description: String {
+        switch self {
+        case .opened:
+            return "Окна открыты"
+        case .closed:
+            return "Окна закрыты"
+        }
+    }
+}
+
+enum EngineStatus: CustomStringConvertible {
+    case on, off
+    
+    var description: String {
+        switch self {
+        case .on:
+            return "Двигатель заведен"
+        case .off:
+            return "Двигатель выключен"
+        }
+    }
+}
+
+enum SpoilerStatus: CustomStringConvertible {
+    case removed
+    case added
+    
+    var description: String {
+        switch self {
+        case .removed:
+            return "Спойлер снят"
+        case .added:
+            return "Спойлер прикреплен"
+        }
+    }
+}
+
+enum TrailerStatus: CustomStringConvertible {
+    case removed
+    case added
+    
+    var description: String {
+        switch self {
+        case .removed:
+            return "Прицеп снят"
+        case .added:
+            return "Прицеп прикреплен"
+        }
+    }
+}
+
+enum Action {
+    case switchEngine(EngineStatus)
+    case switchWindows(WindowsStatus)
+    case loadCargo(Double)
+    case unloadCargo(Double)
+    case switchSpoiler(SpoilerStatus)
+    case switchTrailer(TrailerStatus)
+}
+
+protocol Car {
+    var type: VehicleType {get}
+    var brand: String {get}
+    var yearOfRelease: Int {get}
+    var isEngineStarted: EngineStatus {get set} 
+    var isWindowsOpened: WindowsStatus {get set}
+    var currentCargo: Double {get set}
+    
+    init?()
+    
+    func action(action: Action) 
+}
+
+extension Car {
+    func switchEngine(status: EngineStatus) {
+        self.action(action: .switchEngine(status))
+    }
+    func switchWindow(status: WindowsStatus) {
+        self.action(action: .switchWindows(status))
+    }
+    func loadCargo(amount: Double) {
+        self.action(action: .loadCargo(amount))
+    }
+    func unloadCargo(amount: Double) {
+        self.action(action: .unloadCargo(amount))
+    }
+}
+
+class sportCar: Car {
+    var type: VehicleType
+    var brand: String
+    var yearOfRelease: Int
+    var isEngineStarted: EngineStatus = .off
+    var isWindowsOpened: WindowsStatus = .closed
+    var currentCargo: Double
+    var volumeOfTrunk: Double
+    var haveSpoiler: SpoilerStatus = .removed
+
+    required init?(brand: String, year: Int, maxVolume: Double, currentCargo: Double = 0.0, setEngine: EngineStatus = .off, setWindowsPosition: WindowsStatus = .closed) {
+        self.brand = brand
+        self.yearOfRelease = year
+        self.volumeOfTrunk = maxVolume
+        self.currentCargo = currentCargo
+        self.isEngineStarted = setEngine
+        self.isWindowsOpened = setWindowsPosition
+        
+        self.type = .sportCar
+    }
+    
+    required init?() {
+        self.brand = ""
+        self.yearOfRelease = -1
+        self.currentCargo = 0
+        self.volumeOfTrunk = 0
+        self.type = .sportCar
+    }
+    
+    func action(action: Action) {
+        switch action {
+        case .switchEngine(let status):
+            self.isEngineStarted = status
+        case .switchWindows(let status):
+            self.isWindowsOpened = status
+        case .loadCargo(let amount): 
+            if amount &lt; (self.volumeOfTrunk - self.currentCargo) &amp;&amp; amount &gt; 0 {
+                self.currentCargo += amount
+            }
+        case .unloadCargo(let amount):
+            if amount &lt; self.currentCargo &amp;&amp; amount &gt; 0 {
+                self.currentCargo -= amount
+            }
+        case .switchSpoiler(let status):
+            self.haveSpoiler = status
+        default:
+            print("There is no such action")
+        }
+    }
+    
+    func switchSpoiler(status: SpoilerStatus) {
+        self.action(action: .switchSpoiler(status))
+    }
+    
+    deinit {
+        print("the deinitializer of sportCar have worked")
+    }
+    
+}
+
+class truckCar: Car {
+    var type: VehicleType
+    var brand: String
+    var yearOfRelease: Int
+    var isEngineStarted: EngineStatus = .off
+    var isWindowsOpened: WindowsStatus = .closed
+    var currentCargo: Double
+    var volumeOfTrailer: Double
+    var isTrailerAttached: TrailerStatus = .added
+
+    init?(brand: String, year: Int, maxVolume: Double, currentCargo: Double = 0.0, setEngine: EngineStatus = .off, setWindowsPosition: WindowsStatus = .closed) {
+        self.brand = brand
+        self.yearOfRelease = year
+        self.volumeOfTrailer = maxVolume
+        self.currentCargo = currentCargo
+        self.isEngineStarted = setEngine
+        self.isWindowsOpened = setWindowsPosition
+        
+        self.type = .truck
+    }
+    
+    required init?() {
+        self.brand = ""
+        self.yearOfRelease = -1
+        self.currentCargo = 0
+        self.volumeOfTrailer = 0
+        self.type = .truck
+    }
+    
+    func action(action: Action) {
+        switch action {
+        case .switchEngine(let status):
+            self.isEngineStarted = status
+        case .switchWindows(let status):
+            self.isWindowsOpened = status
+        case .loadCargo(let amount): 
+            if amount &lt; (self.volumeOfTrailer - self.currentCargo) &amp;&amp; amount &gt; 0 {
+                self.currentCargo += amount
+            }
+        case .unloadCargo(let amount):
+            if amount &lt; self.currentCargo &amp;&amp; amount &gt; 0 {
+                self.currentCargo -= amount
+            }
+        case .switchTrailer(let status):
+            self.isTrailerAttached = status
+        default:
+            print("There is no such action")
+        }
+    }
+    
+    func switchTrailer(status: TrailerStatus) {
+        self.action(action: .switchTrailer(status))
+    }
+    
+    deinit {
+        print("the deinitializer of truckCar have worked")
+    }
+}
+
+extension sportCar: CustomStringConvertible {
+    var description: String {
+        return "---------------------\nТип: \(self.type) \nМарка: \(self.brand) \nГод: \(self.yearOfRelease) \nЦена: \nРазмер багажника(литры): \(self.volumeOfTrunk) \nТекущая загруженность(литры): \(self.currentCargo) \n\(self.haveSpoiler) \n\(self.isEngineStarted) \n\(self.isWindowsOpened) \n---------------------"
+    }
+}
+
+extension truckCar: CustomStringConvertible {
+    var description: String {
+        return "---------------------\nТип: \(self.type) \nМарка: \(self.brand) \nГод: \(self.yearOfRelease) \nЦена: \nРазмер багажника(литры): \(self.volumeOfTrailer) \nТекущая загруженность(литры): \(self.currentCargo) \n\(self.isTrailerAttached) \n\(self.isEngineStarted) \n\(self.isWindowsOpened) \n---------------------"
+    }
+}
+
+
+var volvoSportcar: sportCar! = sportCar(brand: "Volvo", year: 2015, maxVolume: 400)
+volvoSportcar.switchEngine(status: .on)
+volvoSportcar.loadCargo(amount: 320)
+print(volvoSportcar!)
+volvoSportcar = nil
+
+
+var lexusSportCar: sportCar! = sportCar(brand: "Lexus", year: 2018, maxVolume: 350)
+lexusSportCar.switchSpoiler(status: .added)
+lexusSportCar.switchWindow(status: .opened)
+lexusSportCar.loadCargo(amount: 20)
+print(lexusSportCar!)
+lexusSportCar = nil
+
+
+var fordTruck: truckCar! = truckCar(brand: "Ford", year: 2009, maxVolume: 16000)
+fordTruck.loadCargo(amount: 12000)
+fordTruck.switchEngine(status: .on)
+fordTruck.unloadCargo(amount: 7700)
+fordTruck.switchTrailer(status: .removed)
+print(fordTruck!)
+fordTruck = nil
+
+
+var mercedesBenzTruck: truckCar! = truckCar(brand: "MercedesBenz", year: 2019, maxVolume: 13000) 
+mercedesBenzTruck.loadCargo(amount: 6530)
+mercedesBenzTruck.switchEngine(status: .off)
+mercedesBenzTruck.switchTrailer(status: .removed)
+mercedesBenzTruck.unloadCargo(amount: 5432)
+mercedesBenzTruck.switchTrailer(status: .added)
+mercedesBenzTruck.switchEngine(status: .on)
+print(mercedesBenzTruck!)
+mercedesBenzTruck = nil
+</string>
+			<key>ModifiedRange</key>
+			<string>{1, 7952}</string>
+			<key>OriginalContent</key>
+			<string></string>
+			<key>OriginalRange</key>
+			<string>{1, 0}</string>
+		</dict>
+	</array>
+	<key>File</key>
+	<string>Chapters/Chapter1.playgroundchapter/Pages/My Playground.playgroundpage/main.swift</string>
+</dict>
+</plist>
